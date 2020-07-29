@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chezburger | 30KFT</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="main.css" />
+</head>
+<body>
+    <video id="video" src=""></video>
+    <audio id="audio" src="Ding-sound-effect.mp3"></audio>
+    <canvas id="canvas"></canvas>
+
+    <!-- Load the handtrackjs model. -->
+    <script src="https://cdn.jsdelivr.net/npm/handtrackjs/dist/handtrack.min.js"></script>
+
+    <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <script>
+        // Notice there is no 'import' statement. 'handTrack' and 'tf' is
+        // available on the index-page because of the script tag above.
+
+        const videeo = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        handTrack.startVideo(video)
+            .then(status => {
+                if (status) {
+                    navigator.getUserMedia({ video: {} }, stream => {
+                        video.src = stream;
+                        video.width = video.width || 360;
+                        video.height = video.height || video.width * (3 / 4)
+                        setInterval(runDetection, 1000);
+                    },
+                        err => console.log(err)
+                    );
+                }
+            })
+
+        const modelParams = {
+            flipHorizontal: true,   // flip e.g for video 
+            imageScaleFactor: 0.7,  // reduce input image size for gains in speed.
+            maxNumBoxes: 20,        // maximum number of boxes to detect
+            iouThreshold: 0.5,      // ioU threshold for non-max suppression
+            scoreThreshold: 0.69,    // confidence threshold for predictions.
+        }
+
+        function runDetection() {
+            // Load the model.
+            handTrack.load().then(model => {
+                // detect objects in the image.
+                model.detect(video).then(predictions => {
+                    model.renderPredictions(predictions, canvas, context, video);
+                    console.log('Predictions: ', predictions);
+                    if (predictions.length > 0) {
+                        audio.play();
+                    };
+                });
+            });
+        }
+
+    </script>
+
+</body>
+</html>
